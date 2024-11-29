@@ -12,6 +12,7 @@ namespace XrTools;
 class Locale {
 
 	private $config;
+	private array $mesCustomCache = [];
 
 	function __construct(\XrTools\Config $config){
 		$this->config = $config;
@@ -39,6 +40,36 @@ class Locale {
 		$this->mes[$lang] = new \XrTools\Locale\Messages($config);
 
 		return $this->mes[$lang];
+	}
+
+	/**
+	 * @param string $name
+	 * @return mixed
+	 */
+	function getMesCustom(string $name): mixed
+	{
+		if (isset($this->mesCustomCache[$name])) {
+			return $this->mesCustomCache[$name];
+		}
+
+		$config = $this->config->get('mes') ?? null;
+
+		if (! $config) {
+			return null;
+		}
+
+		$lang = $config['lang'] ?? $config['default_lang'] ?? 'en';
+		$folder = $config['default_mes_custom_folder'] . $name . '/' . $lang . '.php';
+
+		if (! is_file($folder)) {
+			return null;
+		}
+
+		$content = include $folder;
+
+		$this->mesCustomCache[$name] = $content;
+
+		return $content;
 	}
 
 	// geoIp service
